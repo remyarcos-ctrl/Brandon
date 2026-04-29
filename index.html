@@ -27,27 +27,14 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f7f8fc; height
 .msg-name { font-size: 11px; font-weight: 500; color: #aab0c4; padding: 0 4px; }
 .msg.user .msg-name { text-align: right; }
 .bubble { padding: 12px 16px; font-size: 13.5px; line-height: 1.7; color: #2d3047; }
-.bubble-s { background: #fff; border: 1.5px solid #e8eaf6; border-radius: 4px 18px 18px 18px; }
+.bubble-s { background: #fff; border: 1.5px solid #e8eaf6; border-radius: 4px 18px 18px 18px; min-height: 44px; }
 .bubble-u { background: #5c6bc0; color: #fff; border-radius: 18px 4px 18px 18px; }
 .tools-row { display: flex; flex-wrap: wrap; gap: 5px; margin: 8px 0 4px; }
 .tool-tag { background: #fff8e1; border: 1.5px solid #ffe082; color: #f57f17; font-size: 11px; font-weight: 500; padding: 3px 10px; border-radius: 20px; }
-.score-card { background: #f7f8fc; border: 1.5px solid #e8eaf6; border-radius: 14px; padding: 12px 14px; margin: 10px 0; }
-.score-top { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
-.score-circle { width: 52px; height: 52px; border-radius: 50%; background: #fff; border: 3px solid #ef9a9a; display: flex; flex-direction: column; align-items: center; justify-content: center; flex-shrink: 0; }
-.score-num { font-size: 18px; font-weight: 700; color: #e53935; line-height: 1; }
-.score-den { font-size: 9px; color: #aab0c4; }
-.score-title { font-size: 13px; font-weight: 600; color: #2d3047; }
-.score-desc { font-size: 11px; color: #7986cb; margin-top: 2px; }
-.checks { display: flex; flex-direction: column; gap: 5px; }
-.check-row { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #455a64; background: #fff; border-radius: 10px; padding: 7px 10px; border: 1px solid #f0f0f5; }
-.check-label { flex: 1; }
-.check-badge { font-size: 10px; font-weight: 600; padding: 2px 9px; border-radius: 20px; }
-.bad { background: #ffebee; color: #e53935; }
-.ok { background: #e8f5e9; color: #43a047; }
 .qa-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
 .qa { background: #f0f2ff; border: 1.5px solid #c5cae9; border-radius: 20px; font-size: 12px; font-weight: 500; color: #5c6bc0; padding: 6px 14px; cursor: pointer; transition: all 0.15s; }
 .qa:hover { background: #e8eaf6; }
-.typing { display: flex; gap: 5px; align-items: center; padding: 8px 4px; }
+.typing { display: flex; gap: 5px; align-items: center; padding: 4px 0; }
 .t-dot { width: 7px; height: 7px; border-radius: 50%; animation: bounce 1.2s ease-in-out infinite; }
 .t-dot:nth-child(1) { background: #c5cae9; }
 .t-dot:nth-child(2) { background: #9fa8da; animation-delay: 0.2s; }
@@ -88,56 +75,51 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f7f8fc; height
 const BACKEND = 'https://seomax-production.up.railway.app';
 let isLoading = false;
 
-function addMessage(role, content) {
-  const msgs = document.getElementById('msgs');
-  const div = document.createElement('div');
+function scrollBottom() {
+  var msgs = document.getElementById('msgs');
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function createMsgEl(role) {
+  var msgs = document.getElementById('msgs');
+  var div = document.createElement('div');
   div.className = 'msg' + (role === 'user' ? ' user' : '');
-  const av = document.createElement('div');
+  var av = document.createElement('div');
   av.className = 'av ' + (role === 'user' ? 'av-u' : 'av-s');
   av.textContent = role === 'user' ? '👤' : '🚀';
-  const col = document.createElement('div');
+  var col = document.createElement('div');
   col.className = 'msg-col';
-  const name = document.createElement('div');
+  var name = document.createElement('div');
   name.className = 'msg-name';
   name.textContent = role === 'user' ? 'Vous' : 'Brandon';
-  const bubble = document.createElement('div');
+  var bubble = document.createElement('div');
   bubble.className = 'bubble ' + (role === 'user' ? 'bubble-u' : 'bubble-s');
-  if (content) bubble.innerHTML = formatText(content);
   col.appendChild(name);
   col.appendChild(bubble);
   div.appendChild(av);
   div.appendChild(col);
   msgs.appendChild(div);
-  msgs.scrollTop = msgs.scrollHeight;
+  scrollBottom();
   return bubble;
 }
 
-function addTyping() {
-  const msgs = document.getElementById('msgs');
-  const div = document.createElement('div');
-  div.className = 'msg';
-  div.id = 'typing-indicator';
-  const av = document.createElement('div');
-  av.className = 'av av-s';
-  av.textContent = '🚀';
-  const col = document.createElement('div');
-  col.className = 'msg-col';
-  const bubble = document.createElement('div');
-  bubble.className = 'bubble bubble-s';
+function showTyping() {
+  var bubble = createMsgEl('agent');
+  bubble.id = 'typing-bubble';
   bubble.innerHTML = '<div class="typing"><div class="t-dot"></div><div class="t-dot"></div><div class="t-dot"></div></div>';
-  col.appendChild(bubble);
-  div.appendChild(av);
-  div.appendChild(col);
-  msgs.appendChild(div);
-  msgs.scrollTop = msgs.scrollHeight;
+  return bubble;
 }
 
-function removeTyping() {
-  const t = document.getElementById('typing-indicator');
-  if (t) t.remove();
+function hideTyping() {
+  var el = document.getElementById('typing-bubble');
+  if (el) {
+    el.id = '';
+    el.innerHTML = '';
+  }
+  return el;
 }
 
-function formatText(text) {
+function fmt(text) {
   return text
     .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
     .replace(/^### (.+)$/gm, '<div style="font-weight:600;color:#5c6bc0;margin:8px 0 4px">$1</div>')
@@ -148,10 +130,10 @@ function formatText(text) {
 }
 
 function addQuickActions(bubble, actions) {
-  const row = document.createElement('div');
+  var row = document.createElement('div');
   row.className = 'qa-row';
   actions.forEach(function(a) {
-    const btn = document.createElement('div');
+    var btn = document.createElement('div');
     btn.className = 'qa';
     btn.textContent = a;
     btn.onclick = function() {
@@ -165,54 +147,90 @@ function addQuickActions(bubble, actions) {
 
 async function sendMessage() {
   if (isLoading) return;
-  const inp = document.getElementById('inp');
-  const text = inp.value.trim();
+  var inp = document.getElementById('inp');
+  var text = inp.value.trim();
   if (!text) return;
+
   inp.value = '';
   isLoading = true;
   document.getElementById('send-btn').disabled = true;
-  addMessage('user', text);
-  addTyping();
+
+  var userBubble = createMsgEl('user');
+  userBubble.textContent = text;
+
+  var agentBubble = showTyping();
+  var fullText = '';
+  var toolsRow = null;
+  var started = false;
+
   try {
-    const resp = await fetch(BACKEND + '/audit', {
+    var resp = await fetch(BACKEND + '/audit', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({url: text, email: '', keyword: ''})
     });
-    removeTyping();
-    const bubble = addMessage('agent', '');
-    let fullText = '';
-    const reader = resp.body.getReader();
-    const dec = new TextDecoder();
+
+    var reader = resp.body.getReader();
+    var dec = new TextDecoder();
+
     while (true) {
-      const res = await reader.read();
+      var res = await reader.read();
       if (res.done) break;
-      const chunk = dec.decode(res.value);
-      for (const line of chunk.split('\n')) {
+      var chunk = dec.decode(res.value);
+      var lines = chunk.split('\n');
+
+      for (var i = 0; i < lines.length; i++) {
+        var line = lines[i];
         if (!line.startsWith('data:')) continue;
         try {
-          const d = JSON.parse(line.slice(5).trim());
-          if (d.type === 'message') {
+          var d = JSON.parse(line.slice(5).trim());
+
+          if (d.type === 'message' && d.content) {
+            if (!started) {
+              agentBubble.innerHTML = '';
+              started = true;
+            }
             fullText += d.content + '\n';
-            bubble.innerHTML = formatText(fullText);
-            document.getElementById('msgs').scrollTop = document.getElementById('msgs').scrollHeight;
-          } else if (d.type === 'tool') {
-            const tag = document.createElement('span');
-            tag.className = 'tool-tag';
-            tag.textContent = '⚡ ' + d.content.replace('🛠️ Utilisation de : ', '');
-            let row = bubble.querySelector('.tools-row');
-            if (!row) { row = document.createElement('div'); row.className = 'tools-row'; bubble.prepend(row); }
-            row.appendChild(tag);
-          } else if (d.type === 'done') {
-            addQuickActions(bubble, ['📋 Voir le plan d\'action', '📧 Recevoir par email', '🏆 Analyser les concurrents']);
+            if (toolsRow) {
+              agentBubble.innerHTML = '';
+              agentBubble.appendChild(toolsRow);
+            }
+            var textDiv = document.createElement('div');
+            textDiv.innerHTML = fmt(fullText);
+            agentBubble.appendChild(textDiv);
+            scrollBottom();
           }
+
+          else if (d.type === 'tool') {
+            if (!toolsRow) {
+              toolsRow = document.createElement('div');
+              toolsRow.className = 'tools-row';
+              agentBubble.innerHTML = '';
+              agentBubble.appendChild(toolsRow);
+            }
+            var tag = document.createElement('span');
+            tag.className = 'tool-tag';
+            tag.textContent = '⚡ ' + d.content.replace('Utilisation de : ', '');
+            toolsRow.appendChild(tag);
+            scrollBottom();
+          }
+
+          else if (d.type === 'done') {
+            addQuickActions(agentBubble, ['📋 Plan d\'action', '📧 Recevoir par email', '🏆 Concurrents']);
+          }
+
         } catch(e) {}
       }
     }
+
+    if (!started) {
+      agentBubble.innerHTML = 'Je suis là ! Posez-moi une question SEO ou donnez-moi une URL à analyser.';
+    }
+
   } catch(e) {
-    removeTyping();
-    addMessage('agent', 'Oups, une erreur est survenue 😕 Réessayez dans un instant !');
+    agentBubble.innerHTML = 'Oups, une erreur est survenue 😕 Réessayez dans un instant !';
   }
+
   isLoading = false;
   document.getElementById('send-btn').disabled = false;
   inp.focus();
@@ -223,7 +241,7 @@ document.getElementById('inp').addEventListener('keydown', function(e) {
 });
 
 window.onload = function() {
-  const bubble = addMessage('agent', '');
+  var bubble = createMsgEl('agent');
   bubble.innerHTML = '👋 Salut ! Je suis <strong>Brandon</strong>, votre agent SEO personnel.<br><br>Donnez-moi une URL à analyser, posez-moi une question SEO, ou dites-moi quel mot-clé vous souhaitez cibler — je m\'occupe du reste !';
   addQuickActions(bubble, ['🔍 Auditer mon site', '🎯 Analyser un mot-clé', '🏆 Voir mes concurrents']);
 };
